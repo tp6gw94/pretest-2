@@ -1,0 +1,11 @@
+.avatar {
+    display: block;
+    border-radius: 9999px;
+    width: 200px;
+    height: 200px;
+}
+
+.map {
+    width: 100vw;
+    height: 100vh;
+}
