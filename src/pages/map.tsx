@@ -23,17 +23,6 @@ const requestGeoLocationPermission = async () => {
   return result.state;
 };
 
-const getLocation = async (): Promise<L.LatLngExpression> => {
-  return new Promise((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition((position) => {
-      const latlng = [position.coords.latitude, position.coords.longitude] as L.LatLngExpression;
-      resolve(latlng);
-    }, (err) => {
-      reject(err);
-    });
-  });
-};
-
 
 const createUserInfoPopup = ({ pictureUrl, displayName }: {
   pictureUrl: string,
@@ -56,11 +45,24 @@ const MapPage = () => {
   const mapRef = useRef<L.Map>();
   const [geoPermissionStatus, setGeoPermissionStatus] = useState<PermissionStatus['state'] | null>(null);
 
+  const getLocation = async (): Promise<L.LatLngExpression> => {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const latlng = [position.coords.latitude, position.coords.longitude] as L.LatLngExpression;
+        setGeoPermissionStatus('granted');
+        resolve(latlng);
+      }, (err) => {
+        reject(err);
+      });
+    });
+  };
+
   const setUserLocationAndMarker = useCallback(async () => {
+    const latlng = await getLocation();
     if (!mapRef.current || !profile) {
       return;
     }
-    const latlng = await getLocation();
+
     const marker = L.marker(latlng).addTo(mapRef.current);
     mapRef.current?.setView(latlng, 19);
     marker.bindPopup(createUserInfoPopup({ ...profile }));
@@ -76,14 +78,14 @@ const MapPage = () => {
 
   // init leaflet
   useEffect(() => {
-    if (!leafletWrap.current) return;
+    if (geoPermissionStatus !== 'granted' || !leafletWrap.current) return;
     mapRef.current = L.map(leafletWrap.current, {});
     tiles.addTo(mapRef.current);
 
     return () => {
       mapRef.current?.remove();
     };
-  }, []);
+  }, [geoPermissionStatus]);
 
   useEffect(() => {
     if (geoPermissionStatus === 'denied') {
@@ -92,18 +94,20 @@ const MapPage = () => {
     setUserLocationAndMarker();
   }, [geoPermissionStatus, setUserLocationAndMarker, profile]);
 
+
   return (
     <Layout>
       <Helmet>
         <title>Map</title>
       </Helmet>
-      {geoPermissionStatus === 'denied'
-        ? <button className="btn btn-outline-primary" onClick={setUserLocationAndMarker}>
-          Grant geolocation permission
-        </button>
-        : <div className="vw-100 vh-100" ref={leafletWrap} />
-      }
-
+      {geoPermissionStatus !== 'granted' &&
+        <div className="d-flex justify-content-center mt-5">
+          <h3>You must grant geolocation permissions.</h3>
+        </div>}
+      <div
+        className="vw-100 vh-100"
+        ref={leafletWrap}
+      />
     </Layout>
   );
 };
