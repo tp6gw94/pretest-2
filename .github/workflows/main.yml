@@ -36,8 +36,8 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-      - name: ENV
+
+      - name: Build
         env:
           VITE_LIFF_ID: ${{ secrets.VITE_LIFF_ID }}
-      - name: Build
         run: pnpm build
