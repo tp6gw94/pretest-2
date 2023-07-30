@@ -3,7 +3,7 @@ on:
   - pull_request
 
 jobs:
-  cache-and-install:
+  build-and-upload-s3:
     runs-on: ubuntu-latest
 
     steps:
@@ -41,3 +41,14 @@ jobs:
         env:
           VITE_LIFF_ID: ${{ secrets.VITE_LIFF_ID }}
         run: pnpm build
+
+      - name: Upload S3
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read --follow-symlinks --delete
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_REGION: ${{ secrets.AWS_REGION}}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          SOURCE_DIR: 'dist'
