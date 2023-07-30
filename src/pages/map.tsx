@@ -1,10 +1,17 @@
 import Layout from '../components/Layout.tsx';
 import * as L from 'leaflet';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth.ts';
 import { setElementAttr } from '../utils/setElementAttr.ts';
 import { Helmet } from 'react-helmet-async';
+
+L.Marker.prototype.options.icon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow
+});
 
 const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
