@@ -34,32 +34,37 @@ const getLocation = async (): Promise<L.LatLngExpression> => {
   });
 };
 
+
+const createUserInfoPopup = ({ pictureUrl, displayName }: {
+  pictureUrl: string,
+  displayName: string
+}) => {
+  const container = document.createElement('div');
+  const img = document.createElement('img');
+  const h3 = document.createElement('h3');
+  setElementAttr(img, { src: pictureUrl, style: 'width: 100px; height: 100px;', alt: 'user picture' });
+  setElementAttr(h3, { style: 'text-align: center;' });
+  h3.textContent = displayName;
+  container.append(img, h3);
+  return container;
+};
+
 const MapPage = () => {
   const { profile } = useAuth();
+
   const leafletWrap = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map>();
   const [geoPermissionStatus, setGeoPermissionStatus] = useState<PermissionStatus['state'] | null>(null);
 
-  const createUserInfoPopup = useCallback(() => {
-    const container = document.createElement('div');
-    const img = document.createElement('img');
-    const h3 = document.createElement('h3');
-    setElementAttr(img, { src: profile?.pictureUrl, style: 'width: 100px; height: 100px;', alt: 'user picture' });
-    setElementAttr(h3, { style: 'text-align: center;' });
-    h3.textContent = profile?.displayName ?? '';
-    container.append(img, h3);
-    return container;
-  }, [profile?.pictureUrl, profile?.displayName]);
-
   const setUserLocationAndMarker = useCallback(async () => {
-    if (!mapRef.current) {
+    if (!mapRef.current || !profile) {
       return;
     }
     const latlng = await getLocation();
     const marker = L.marker(latlng).addTo(mapRef.current);
     mapRef.current?.setView(latlng, 19);
-    marker.bindPopup(createUserInfoPopup());
-  }, [createUserInfoPopup]);
+    marker.bindPopup(createUserInfoPopup({ ...profile }));
+  }, [profile]);
 
   // handle permission
   useEffect(() => {
@@ -85,7 +90,7 @@ const MapPage = () => {
       return;
     }
     setUserLocationAndMarker();
-  }, [geoPermissionStatus, profile, setUserLocationAndMarker]);
+  }, [geoPermissionStatus, setUserLocationAndMarker, profile]);
 
   return (
     <Layout>
@@ -93,7 +98,9 @@ const MapPage = () => {
         <title>Map</title>
       </Helmet>
       {geoPermissionStatus === 'denied'
-        ? <button onClick={setUserLocationAndMarker}>Grant geolocation permission</button>
+        ? <button className="btn btn-outline-primary" onClick={setUserLocationAndMarker}>
+          Grant geolocation permission
+        </button>
         : <div className="vw-100 vh-100" ref={leafletWrap} />
       }
 

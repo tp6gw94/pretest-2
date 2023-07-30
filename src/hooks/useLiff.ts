@@ -10,9 +10,11 @@ export const useLiff = () => {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    liff.ready.then(() => {
+    const liffReady = async () => {
+      await liff.ready;
       setReady(true);
-    });
+    };
+    liffReady();
   }, []);
 
   return {
