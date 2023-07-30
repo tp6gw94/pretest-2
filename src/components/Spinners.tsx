@@ -1,4 +1,4 @@
-import classNames from 'classNames';
+import classNames from 'classnames';
 
 const Spinners = ({ fullpage = false }: { fullpage?: boolean }) => {
   return (
